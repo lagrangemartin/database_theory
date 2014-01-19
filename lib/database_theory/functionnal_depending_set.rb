@@ -1,4 +1,5 @@
 require 'graphviz'
+require 'set'
 
 module DatabaseTheory
 	class FunctionnalDependingSet
@@ -23,11 +24,16 @@ module DatabaseTheory
 			g.node[:shape] = "circle"
 			#g.node[:color] = "black"
 			g.node[:color] = "white"
+			g.node[:width] = "0.01"
+			g.node[:height] = "0.01"
 			
 			#g.edge[:color] = "black"
-			g.edge[:weight] = "0.5"
+
 			#g.edge[:style] = "filled"
 			#g.edge[:label] = ""
+
+
+			existing_edges = Set.new
 
 			@functionnal_dependencies.each do |fd|
 
@@ -44,8 +50,14 @@ module DatabaseTheory
 					# We connect the singleton determinant to its dependents
 					singleton_determinant_node = g.get_node(fd.determinant.first)
 
+
 					fd.dependent.each do |dependent|
-						g.add_edges(singleton_determinant_node, g.get_node(dependent) )
+						# Does this edge already exists ?
+						dependent_node = g.get_node(dependent)
+				 		edge_id ="#{singleton_determinant_node.__id__}=>#{dependent_node.__id__}"
+
+						g.add_edges(singleton_determinant_node, dependent_node ) if not existing_edges.include? edge_id
+						existing_edges << edge_id
 					end
 				else
 					#We create a union node which is the unification of each determinant 
@@ -57,12 +69,20 @@ module DatabaseTheory
 				 	
 				 	# We connect each dependent to the union node
 				 	fd.determinant.each do |determinant|
-						g.add_edges(g.get_node(determinant),union_node)
+				 		determinant_node = g.get_node(determinant)
+				 		edge_id ="#{determinant_node.__id__}=>#{union_node.__id__}"
+						g.add_edges(determinant_node,union_node) if not existing_edges.include? edge_id
+						existing_edges << edge_id
+						
 					end
+
 
 					# We connect the union node to each dependent
 				 	fd.dependent.each do |dependent|
-						g.add_edges(union_node, g.get_node(dependent) )
+				 		dependent_node = g.get_node(dependent)
+						edge_id ="#{union_node.__id__}=>#{dependent_node.__id__}"
+						g.add_edges(union_node, dependent_node) if not existing_edges.include? edge_id
+						existing_edges << edge_id
 					end
 
 				end
