@@ -22,6 +22,16 @@ module DatabaseTheory
 			fd = FunctionnalDependency.new("A,B,C")
 			fd.dependent.should == []
 		end
+
+		it "is possible to know if its determinant is singleton" do
+			fd = FunctionnalDependency.new("A", "C")
+			fd.determinant_singleton?.should be_true
+		end
+
+		it "is possible to get its unique attributes" do
+			fd = FunctionnalDependency.new("A,C,D","C,D,F")
+			fd.unique_attributes.should == ["A","C","D","F"]
+		end
 			
 	end
 end
